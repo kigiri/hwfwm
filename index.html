@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+<style>
+@font-face {
+  font-family: 'IM Fell DW Pica';
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/imfelldwpica/v16/2sDEZGRQotv9nbn2qSl0TxXVYNwNZjnXlis.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'IM Fell DW Pica';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/imfelldwpica/v16/2sDGZGRQotv9nbn2qSl0TxXVYNwNYwnV.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  background: #666;
+  font-size: 18px;
+  color: #fff;
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+}
+
+body {
+  background-image: url(./image/bg.webp);
+  background-position: center;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+* {
+  font-smooth: never;
+  font-family: 'IM Fell DW Pica', monospace;
+  color: inherit;
+}
+
+.ui, [data-drag-target], button, .slot { user-select: none }
+[data-drag-target] { cursor: grab }
+[data-drag-state="grabbed"] { cursor: grabbing }
+
+button {
+  font-size: 24px;
+  line-height: 20px;
+  background: #000;
+  border: 1px solid #888;
+  outline: 1px solid black;
+}
+button:focus { border-color: #59C }
+button:hover { border-color: #fff }
+
+#inventory h2, #quests h2 {
+  padding-top: 8px;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+#inventory h2 > button {
+  line-height: 14px;
+  padding-bottom: 4px;
+}
+#quests, #tooltip .wrapper, .frame, #character, #inventory {
+  padding: 0 8px 8px 8px;
+  background: #111c;
+  backdrop-filter: blur(8px);
+  width: fit-content;
+  border: 1px solid #888;
+  outline: 1px solid black;
+  box-shadow: 0 0 3px 1px black, 0 0 1px 1px black, 1px 1px 7px 1px black;
+  outline-offset: -2px;
+}
+#character, #inventory {
+  margin: 20px;
+}
+
+#abilities-wrapper {
+  margin-bottom: 20px;
+}
+
+.ability-bar, .slots {
+  display: grid;
+  grid-auto-rows: 1fr;
+  column-gap: 3px;
+  row-gap: 3px;
+  width: fit-content;
+  color: #888;
+}
+.ability-bar { grid-template-columns: repeat(12, 1fr) }
+.slots { grid-template-columns: repeat(8, 1fr) }
+.slot, .icon {
+  height: 48px;
+  width: 48px;
+  background: #000;
+  border: 1px solid #888;
+  outline: 1px solid black;
+  flex-shrink: 0;
+  background-size: cover;
+  background-position-x: calc(100% * -0); /* can be any of: -0 -1, -2, -3 */
+  border-color: currentColor;
+  box-shadow: 0 0 4px 1px inset black;
+}
+.icon {
+  height: 96px;
+  width: 96px;
+}
+
+#tooltip .note {
+  font-style: italic;
+  color: #eea;
+}
+
+.rank, .quality {
+  text-transform: capitalize;
+}
+
+.title, .l, .xl, h1,h2,h3,h4,h5,h6 {
+  margin: 0;
+  font-style: normal;
+  font-weight: 100;
+  font-size: 24px;
+  text-shadow: 1px 1px 0px black;
+  text-transform: capitalize;
+  font-variant: small-caps;
+}
+.l, h3,h4,h5,h6 {
+  font-size: 20px;
+}
+ul { padding: 0 }
+li { margin-left: 1.5em }
+
+#abilities-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+  position: relative;
+}
+
+#abilities-wrapper .anchor [data-drag-target] {
+  max-width: 856px;
+  width: 100%;
+  height: 51px;
+  position: relative;
+  margin: 0 auto;
+  z-index: 1;
+}
+
+#abilities-wrapper .anchor {
+  width: 100%;
+  height: 54px;
+  font-size: 24px;
+  text-shadow: 0px 0px 12px black, 0px 0px 4px black, 1px 1px 0 black;
+  text-align: center;
+  line-height: 54px;
+}
+.anchor:after {
+  content: ' ';
+  display: block;
+  position: relative;
+  height: 119px;
+  top: -92px;
+  background-image: url('./image/ability-bar-bg.webp');
+  background-repeat: no-repeat;
+  background-position: bottom center;
+  background-size: 910px;
+  user-select: none;
+}
+
+#abilities { position: relative }
+.slot:not([data-tip]) {
+  opacity: .5
+}
+
+#character h1 {
+  font-size: 32px;
+  padding-bottom: 6px;
+  text-align: center;
+  border-bottom: 1px solid #888;
+  margin-bottom: 6px;
+}
+#character h2 {
+  border-top: 1px solid #888;
+  padding-top: 6px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+#power h3 { color: #eea }
+#speed h3 { color: #aee }
+#spirit h3 { color: #eae }
+#recovery h3 { color: #aea }
+#attributes h3 {
+  display: inline-block;
+  margin-right: 6px;
+}
+
+#tooltip {
+  display: flex;
+  gap: 4px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 1;
+  transition: opacity 250ms;
+  max-width: 360px;
+  pointer-events: none;
+  z-index: 999;
+}
+
+#tooltip:not([data-id]) { opacity: 0 }
+
+#tooltip .icon, #tooltip .wrapper {
+  box-shadow: 0 0 3px 1px #0005, 0 0 1px 1px #0005, 1px 1px 7px 1px #0005, 0 0 4px 1px inset black;
+}
+#tooltip .wrapper {
+  width: fit-content;
+  background: #000B;
+  padding: 6px 12px;
+  border-color: currentColor;
+}
+
+#tooltip .content {
+  color: #fff;
+  line-height: 20px;
+  padding-top: 4px;
+}
+
+#tooltip .title {
+  margin-bottom: 6px;
+}
+
+.joined {
+  display: flex;
+  justify-content: space-between;
+}
+
+.joined *:last-child {
+  text-align: right;
+}
+
+#quests {
+  display: flex;
+  flex-direction: column;
+  padding: 0 8px 8px;
+  width: 480px;
+}
+
+#quest-list option {
+  padding: 4px 8px;
+  font-size: 18px;
+}
+
+#quest-list {
+  overflow-y: scroll;
+  background: #0006;
+  margin-bottom: 8px;
+  padding-top: 1px;
+}
+
+#quest-detail {
+  border: solid 1px #fff5;
+  background: #0006;
+  height: 360px;
+  overflow-y: scroll;
+  padding: 8px;
+  font-size: 16px;
+}
+
+#quest-detail h3 {
+  color: #eea;
+}
+
+ul.objectives .l {
+  color: #aae;
+}
+
+ul.rewards .l {
+  color: #aea;
+}
+
+#quest-detail .quantity {
+  color: #eaa;
+  margin-left: 0.25em;
+}
+
+a {
+  text-decoration: none;
+}
+
+</style>
+</head>
+<body>
+
+<div id='abilities-wrapper'>
+  <div class="anchor"><div data-drag-target="#abilities-wrapper">Abilities</div></div>
+  <div id='abilities'></div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap">
+<div id="character">
+  <h1 id="character_name" data-drag-target="#character">Jason Asano</h1>
+  <div id="paperdoll"></div>
+  <div id="character_info">
+    <div class="joined">
+      <div><span id="character_race">Outworlder</span> <i>(Race)</i></div>
+      <div id="character_rank"></div>
+    </div>
+    <div id="character_progression">Progression to iron rank: 0% (0/4 essences)</div>
+  </div>
+  <div id="attributes">
+    <h2>Attributes</h2>
+    <div id="power" data-tip="attribute_1"><h3>[Power]</h3><span></span></div>
+    <div id="speed" data-tip="attribute_2"><h3>[Speed]</h3><span></span></div>
+    <div id="spirit" data-tip="attribute_3"><h3>[Spirit]</h3><span></span></div>
+    <div id="recovery" data-tip="attribute_4"><h3>[Recovery]</h3><span></span></div>
+  </div>
+  <div id="essences">
+    <h2>Essences</h2>
+    <div id="essence_1"><h3></h3><span></span></div>
+    <div id="essence_2"><h3></h3><span></span></div>
+    <div id="essence_3"><h3></h3><span></span></div>
+    <div id="essence_4"><h3></h3><span></span></div>
+  </div>
+</div>
+<div id="inventory">
+  <!-- TODO: a bar to switch between bags / void storage -->
+  <h2 data-drag-target="#inventory"><span data-tip="ability_3">[Inventory]</span><button class="close">x</button></h2>
+  <div class="slots"></div>
+  <!-- TODO: a search bar ! -->
+  <div class="currency"></div> 
+</div>
+<div id="quests">
+  <h2 data-drag-target="#quests"><span data-tip="ability_2">[Quests]</span><button class="close">x</button></h2>
+  <select id="quest-list" name="quest-list" multiple>
+  </select>
+  <div id="quest-detail">
+    <h3 id="quest-title"></h3>
+    <div id="quest-content"></div>
+  </div>
+</div>
+<!-- <div id='map'></div> -->
+</div>
+
+<div id="tooltip">
+  <div class="icon"></div>
+  <div class="wrapper">
+    <span class="title">Tooltip</span>
+    <div class="content">No content</div>
+  </div>
+</div>
+
+<script>
+// helpers
+const $ = q => document.querySelector(q)
+const $$ = q => [...document.querySelectorAll(q)]
+const _n = n => [...Array(n).keys()]
+
+const h = ({ tag = 'div', style, data, ...props } = {}, ...children) => {
+  const el = document.createElement(tag)
+  props.class && (props.className = props.class)
+  Object.assign(el, props)
+  style && Object.assign(el.style, style)
+  data && Object.assign(el.dataset, data)
+  el.append(...children.flat())
+  return el
+}
+
+$('#inventory .slots').append(..._n(8).flatMap(x => _n(5).map(y => h({ class: 'slot' }))))
+
+// ---
+// Memory cleanup system
+// ---
+const cleanups = new WeakMap()
+const addCleanups = (src, fn) => {
+  const current = cleanups.get(src)
+  current ? current.push(fn) : cleanups.set(src, [fn])
+}
+new MutationObserver(mutations => {
+  for (const mutation of mutations) {
+    for (const node of mutation.removedNodes) {
+      const cleanup = cleanups.get(node)
+      if (!cleanup) continue
+      console.log(cleanup.length, 'cleanups for', node.innerHTML)
+      for (const clean of cleanup) clean(node)
+    }
+  }
+}).observe(document.body, { subtree: true, childList: true })
+
+// ----
+// Drag System
+// ---
+const dragTargets = new Map()
+const byValue = (a, b) => a[1] - b[1]
+const updateZIndex = () => {
+  for (const [i, [target]] of [...dragTargets.entries()].sort(byValue).entries()) {
+    target.style.zIndex = 10 + i*10
+  }
+}
+for (const [index, grabHandle] of $$('[data-drag-target]').entries()) {
+  const { dragTarget } = grabHandle.dataset
+  const target = $(dragTarget)
+  if (!target) {
+    console.warn('drag target not found', { query: dragTarget })
+    continue
+  }
+  const cacheX = `${dragTarget}-x`
+  const cacheY = `${dragTarget}-y`
+  const cacheZ = `${dragTarget}-z`
+  target.style.transform = `translate(${Number(localStorage[cacheX] || 0)}px, ${Number(localStorage[cacheY] || 0)}px)`
+  target.style.position = 'relative'
+  const zIndex = 10 + index * 10
+  dragTargets.set(target, Number(localStorage[cacheZ] || index))
+  const handleMouseDown = ({ x, y }) => {
+    const X = Number(localStorage[cacheX] || 0)
+    const Y = Number(localStorage[cacheY] || 0)
+    let curX = X
+    let curY = Y
+    const cleanup = ev => {
+      localStorage[cacheX] = curX
+      localStorage[cacheY] = curY
+      removeEventListener('mouseup', moveHandler)
+      removeEventListener('mousemove', moveHandler)
+    }
+    const moveHandler = ev => {
+      if (!ev.buttons) return cleanup(ev)
+      curY = Y + ev.y - y
+      curX = X + ev.x - x
+      target.style.transform = `translate(${curX}px, ${curY}px)`
+    }
+    addEventListener('mouseup', cleanup, false)
+    addEventListener('mousemove', moveHandler, false)
+    const now = Date.now()
+    localStorage[cacheZ] = now
+    dragTargets.set(target, now)
+    updateZIndex()
+  }
+  grabHandle.addEventListener('mousedown', handleMouseDown, false)
+}
+updateZIndex()
+
+// ---
+// Tooltip
+// ---
+const tooltipDbId = new Map() // map of all elements that should show a tooltip
+const registerTipChildren = (el, dbId) => {
+  tooltipDbId.set(el, dbId)
+  for (const child of el.children) registerTipChildren(child, dbId)
+}
+const setNodesTooltip = (el, dbId) => {
+  el.dataset.tip = dbId
+  const a = h({ tag: 'a', href: `#${dbId}` })
+  el.insertAdjacentElement('afterEnd', a)
+  a.append(el)
+  registerTipChildren(el, dbId)
+}
+
+const updateTooltipMap = () => {
+  tooltipDbId.clear()
+  for (const tooltipTarget of $$('[data-tip]')) {
+    const dbId = tooltipTarget.dataset.tip
+    setNodesTooltip(tooltipTarget, dbId)
+  }
+}
+
+const tooltip = $('#tooltip')
+const tooltipIcon = $('#tooltip .icon')
+const tooltipTitle = $('#tooltip .title')
+const tooltipContent = $('#tooltip .content')
+const clear = el => {
+  while (el.firstChild) el.firstChild.remove()
+}
+const replace = (el, value) => {
+  clear(el)
+  Array.isArray(value) ? el.append(...value) : el.append(value)
+}
+const setTooltipData = dbId => {
+  const entry = db[dbId]
+  tooltip.dataset.id = dbId
+  tooltip.dataset.type = entry?.type
+  let icon
+  let title
+  let color
+  switch (entry?.type) {
+  case 'attribute': {
+    title = entry.name
+    icon = dbId
+    color = entry.color
+    entry.tooltip || (entry.tooltip = entry.text)
+    break
+  }
+  case 'ability': {
+    icon = dbId
+    title = entry.name
+    color = entry.color
+    if (entry.tooltip) break
+    const { quality, rank, category } = entry
+    entry.tooltip = h(
+      {},
+      h({ class: 'category', style: { color: category.color } }, category.name),
+      h({ class: 'joined' },
+        rank?.elem.cloneNode(true) || h({ tag: 'span' }),
+        quality?.elem.cloneNode(true) || h({ tag: 'span' }),
+      ),
+
+      h({ tag: 'ul', class: 'effects' },
+        h({ tag: 'span', class: 'l' }, 'Effects:'),
+        ...(entry.effects || []).map(text => h({ tag: 'li' }, text))
+      ),
+    )
+    break
+  }
+  case 'item': {
+    icon = dbId
+    title = entry.name
+    color = entry.color
+    if (entry.tooltip) break
+    const { quality, rank, charges, uses = 0 } = entry
+    entry.tooltip = h({},
+      h(
+        { class: 'joined' },
+        rank?.elem.cloneNode(true) || h({ tag: 'span' }),
+        quality?.elem.cloneNode(true) || h({ tag: 'span' }),
+      ),
+    )
+    if (entry.effects?.length) {
+      entry.tooltip.append(h({ tag: 'ul', class: 'effects' },
+        h({ tag: 'span', class: 'l' }, 'Effects:'),
+        ...(entry.effects || []).map(text => h({ tag: 'li' }, text))
+      ))
+    }
+    if (charges != null) {
+      entry.tooltip.prepend(h({ style: { marginTop: '6px', color: '#aae' } }, 'Consumable'))
+      entry.tooltip.append(h({}, `Remaining uses ${uses}/${charges}`))
+    }
+    entry.text && entry.tooltip.append(h({ tag: 'p', class: 'note' }, entry.text))
+    break
+  }
+  case 'quest': {
+    title = entry.name
+    color = entry.color
+    if (entry.tooltip) break
+    entry.tooltip = h({},
+      h({ tag: 'p' }, entry.text),
+    )
+    entry.objectives?.length && entry.tooltip.append(h({ tag: 'ul', class: 'objectives' },
+      h({ tag: 'span', class: 'l' }, 'Objectives:'),
+      ...entry.objectives.map(({ text, quantity, done = 0, kind }) => {
+          const objective = h({ tag: 'li', class: 'objective' })
+          kind && objective.append(h({ tag: 'i', style: { color: '#eae'} }, `${kind}: `))
+          objective.append(text)
+          quantity > 0 && objective.append(h({ tag: 'span' }, `${quantity}/${done}`))
+          return objective
+        }),
+      )
+    )
+    entry.rewards?.length && entry.tooltip.append(h({ tag: 'ul', class: 'rewards' },
+      h({ tag: 'span', class: 'l' }, 'rewards:'),
+      ...entry.rewards.map(({ quantity = 1, entry }) =>
+        h({ tag: 'li', class: 'reward' },
+          h({ tag: 'span', data: { tip: entry.id } }, `[${entry.name}]`),
+          h({ tag: 'span' }, ` x${quantity}`),
+        )
+      ))
+    )
+    break
+  }
+  }
+  if (icon) {
+    tooltipIcon.style.visibility = ''
+    tooltipIcon.style.backgroundImage = `url('./image/${dbId}_96.webp'), url('./image/unk.webp')`
+  } else {
+    tooltipIcon.style.visibility = 'hidden'
+  }
+  tooltip.style.color = color || '#888'
+  replace(tooltipContent, entry.tooltip || '???')
+  replace(tooltipTitle, title || '???')
+}
+
+addEventListener('mousemove', ({ x, y, target }) => {
+  const dbId = tooltipDbId.get(target)
+  if (!dbId) {
+    tooltip.dataset.id && (delete tooltip.dataset.id)
+    return
+  }
+
+  // tooltip change, we need to update the content
+  if (tooltip.dataset.id !== dbId) {
+    setTooltipData(dbId)
+    tooltip.rect = tooltip.getBoundingClientRect()
+  }
+
+  // adjust tooltip position to always be in frams
+  const { height, width } = tooltip.rect || (tooltip.rect = tooltip.getBoundingClientRect())
+  let Y = y - 100 - 4
+  let X = x + 4
+  if (X + width > window.innerWidth) {
+    X = x - 4 - width
+    tooltip.style.flexDirection = 'row-reverse'
+  } else {
+    tooltip.style.flexDirection = 'row'
+  }
+  Y < 0 && (Y = y + 4)
+  // attach tooltip to the mouse
+  tooltip.style.transform = `translate(${X}px, ${Y}px)`
+}, false)
+
+const ranks = [
+  { cat: 0, color: '#DCEDD1', name: 'lesser' },
+  { cat: 1, color: '#D9CEBA', name: 'iron' },
+  { cat: 2, color: '#F5AC8C', name: 'bronze' },
+  { cat: 3, color: '#D8D6F2', name: 'silver' },
+  { cat: 4, color: '#EDCA32', name: 'gold' },
+  { cat: 5, color: '#B8ECF2', name: 'diamond' },
+  { cat: 6, color: '#EBC1F3', name: 'transcendent' },
+].map(rank => ({
+  ...rank,
+  elem: h(
+    { tag: 'span', class: 'rank', style: { color: rank.color } },
+    rank.name,
+    h({ tag: 'i' }, ' (rank)'),
+  ),
+}))
+
+const qualities = [
+  { index: 0, color: '#9D9D9D', name: 'poor' },
+  { index: 1, color: '#FFFFFF', name: 'common' },
+  { index: 2, color: '#1EFF00', name: 'uncommon' },
+  { index: 3, color: '#0070FF', name: 'rare' },
+  { index: 4, color: '#A335EE', name: 'epic' },
+  { index: 5, color: '#FF8000', name: 'legendary' },
+].map(quality => ({
+  ...quality,
+  elem: h(
+    { tag: 'span', class: 'quality', style: { color: quality.color } },
+    quality.name,
+    h({ tag: 'i' }, ' (quality)'),
+  ),
+}))
+
+const categories = {
+  racial: { color: '#eae', name: 'Racial Ability' },
+  essence: { color: '#eea', name: 'Essence Ability' },
+}
+
+const attributes = ['power', 'speed', 'spirit', 'recovery']
+
+const chapters = [
+  {
+    chapter: 1,
+    attribute_1: {
+      color: '#eea',
+      name: 'power',
+      text: 'Power attribute includes strength and meta-weight. The higher the power attribute is the more strength one is able to show. Also the higher the power attribute is the less one is thrown around by those of the same or lower ranks',
+    },
+    attribute_2: {
+      color: '#aee',
+      name: 'speed',
+      text: 'Speed attribute includes how flexible, and dexterous one is, along with how fast. At late Iron early Bronze the speed attribute allow one to be an Olympic gymnast and sprint at the same time',
+    },
+    attribute_3: {
+      color: '#eae',
+      name: 'spirit',
+      text: 'Spirit attribute is how well one deals with stimulus and the strength of essence abilities. The higher the Spirit attribute is the more you can your senses improve along with mental aspects',
+    },
+    attribute_4: {
+      color: '#aea',
+      name: 'recovery',
+      text: 'Recovery attribute is how fast one can recover mana, stamina, and health. Recovery also is a factor in how long most afflictions will be in effect',
+    },
+    item_1: { name: 'Simple Pants', quality: 1 },
+    item_2: { name: 'Simple Shirt', quality: 1 },
+    item_3: { name: 'Simple Footwear', quality: 1 },
+    item_4: {
+      name: '???',
+      rank: 6,
+      quality: 5,
+      text: 'Authority of the World-Phoenix',
+      effects: ['???', '???'],
+      charges: 1,
+      position: 'inventory',
+    },
+    monster_1: { name: 'Potent Hamster' },
+    objective_1: { text: 'Explore the hedge maze', quantity: 1, done: 0 },
+    objective_2: { text: 'Discover the reason lesser monsters have infested the area', quantity: 1, done: 0 },
+    objective_3: { text: 'Defeat ten lesser monsters', quantity: 10, done: 1, kind: 'bonus' },
+    quest_1: {
+      name: 'Stranger in a Strange Land',
+      text: 'You have awoken in a place you do not know. Explore the area to discover more',
+      objectives: ['objective_1'],
+      rewards: [{ entry: 'item_1', quantity: 1 }],
+    },
+    quest_2: {
+      name: 'No Shirt, No Shoes, No Service',
+      text: 'For unknown reasons, your immediate area has become infested with lesser monsters',
+      objectives: ['objective_2', 'objective_3'],
+      rewards: [{ entry: 'item_2', quantity: 1 }, { entry: 'item_3', quantity: 1 }],
+    },
+    character_1: {
+      name: 'Jason Asano',
+      race: 'Outworlder',
+      rank: 0,
+      power: { essence: null, rank: 0 },
+      speed: { essence: null, rank: 0 },
+      spirit: { essence: null, rank: 0 },
+      recovery: { essence: null, rank: 0 },
+      abilities: ['ability_1','ability_2','ability_3','ability_4','ability_5','ability_6'],
+    },
+    character_2: { name :'Jason Dad', job: 'Landscape Architect' },
+    character_3: { name: 'Jason Mom', etnicity: 'Japanese' },
+    ability_1: {
+      name: 'Interface',
+      category: 'racial',
+      effects: ['Allow you to see information about the world and interact with it directly'],
+    },
+    ability_2: {
+      name: 'Quest System',
+      category: 'racial',
+      effects: ['Can recieve quests and rewards'],
+    },
+    ability_3: {
+      name: 'Inventory',
+      category: 'racial',
+      effects: ['Show items in a grid', 'Display available currencies'],
+    },
+    ability_4: {
+      name: 'Map',
+      category: 'racial',
+      effects: ['Show a map of the world with detailed info for visited areas'],
+      // world map that looked both familiar and unfamiliar. Although the details were obscured, he could make out the outline of the continents. Disturbingly, they weren’t quite the same as the ones he knew. South East Asia was a singular landmass, pushing Australia south and east where it looked to have consumed New Zealand. The Iberian and Arabian peninsulas were missing entirely, leaving Africa wholly disconnected from Europe and Asia. Sri Lanka was further south and several times larger, making for a huge land mass in the middle of the Indian Ocean.
+    },
+    ability_5: {
+      name: 'Astral Affinity',
+      category: 'racial',
+      effects: [
+        'Increased resistance to dimension effects and astral forces',
+        'Dimension abilities have increased effect',
+        'Transcendent damage is increased',
+      ],
+    },
+    ability_6: {
+      name: 'Mysterious Stranger',
+      category: 'racial',
+      effects: [
+        'Language adaptation',
+        'Essence, awakening stone and skill-book absorption',
+        'Immunity to identification and tracking effects',
+      ],
+    },
+    zone_1: { name: 'Vane Estate (Hedge Maze)' },
+  },
+]
+
+const db = {}
+for (const chapter of chapters) {
+  for (const [dbId, value] of Object.entries(chapter)) {
+    value.rank = ranks[value.rank]
+    value.quality = qualities[value.quality]
+    value.category = categories[value.category]
+    db[dbId] = Object.assign(db[dbId] || { type: dbId.split('_')[0], id: dbId, chapter }, value)
+    switch (db[dbId].type) {
+    case 'character': {
+      for (const attribute of attributes) {
+        if (value[attribute]) {
+          value[attribute].rank = ranks[value[attribute].rank]
+          console.log(attribute, value[attribute])
+        } else {
+          value[attribute] = {}
+        }
+      }
+    }
+    }
+    if (dbId === 'character_1') {
+      console.log(value.rank)
+    }
+  }
+}
+
+const multiReferencesKeys = new Set([
+  'characters',
+  'attributes',
+  'abilities',
+  'items',
+  'monsters',
+  'objectives',
+  'quests',
+  'zones',
+])
+
+const singleReferenceKeys = new Set([
+  'character',
+  'attribute',
+  'ability',
+  'item',
+  'monster',
+  'objective',
+  'quest',
+  'zone',
+])
+
+const fillSlot = (slotElem, entry) => {
+  slotElem.style.backgroundImage = `url('./image/${entry.id}_48.webp'), url('./image/unk_48.webp')`
+  slotElem.style.borderColor = entry.color || '#888'
+  setNodesTooltip(slotElem, entry.id)
+}
+
+const questsElem = $('#quest-list')
+const getFromDb = id => db[id]
+const freeSlots = $$('#inventory .slots .slot').reverse()
+for (const entry of Object.values(db)) {
+  for (const key of singleReferenceKeys) {
+    if (!(key in entry)) continue
+    entry[key] = db[entry[key]]
+    if (!entry[key]) {
+      console.warn('not found in db', { key, entry })
+    }
+  }
+  for (const key of multiReferencesKeys) {
+    if (!(key in entry)) continue
+    entry[key] = entry[key]?.map?.(getFromDb)
+    if (!entry[key]) {
+      console.warn('not found in db', { key, entry })
+    }
+  }
+
+entry.rewards?.length &&
+  (entry.rewards = entry.rewards.map(({ entry, quantity }) => ({
+    quantity,
+    entry: db[entry],
+  })))
+  entry.color || (entry.color = entry.quality?.color || entry.rank?.color || entry.category?.color || '#ddd')
+  if (entry.position === 'inventory') {
+    const slot = freeSlots.pop()
+    fillSlot(slot, entry)
+  }
+
+  if (entry.type === 'quest') {
+    const li = h({ tag: 'option', value: entry.id, style: { color: entry.color } }, entry.name)
+    questsElem.append(li)
+  }
+}
+
+const questTitle = $('#quest-title')
+const questContent = $('#quest-content')
+const updateActiveQuest = () => {
+  const firstElem = questsElem[0]
+  if (!questsElem.value) {
+    questsElem.value = firstElem.value
+  }
+  const quest = db[questsElem.value]
+  title = quest.name
+  color = quest.color
+  if (!quest.pageElem) {
+    const pageElem = h({},
+      h({ tag: 'p' }, quest.text),
+    )
+    quest.pageElem = pageElem
+    quest.objectives?.length && pageElem.append(h({ tag: 'ul', class: 'objectives' },
+      h({ tag: 'span', class: 'l' }, 'Objectives:'),
+      ...quest.objectives.map(({ text, quantity, done = 0, kind }) => {
+          const objective = h({ tag: 'li', class: 'objective' })
+          kind && objective.append(h({ tag: 'i', style: { color: '#eae'} }, `${kind}: `))
+          objective.append(text)
+          quantity > 0 && objective.append(h({ tag: 'span', class: 'quantity' }, `${quantity}/${done}`))
+          return objective
+        }),
+      )
+    )
+    quest.rewards?.length && pageElem.append(h({ tag: 'ul', class: 'rewards' },
+      h({ tag: 'span', class: 'l' }, 'rewards:'),
+      ...quest.rewards.map(({ quantity = 1, entry }) => {
+        const entryLink = h({ tag: 'span', data: { tip: entry.id } }, `[${entry.name}]`)
+        const li = h({ tag: 'li', class: 'reward' },
+          entryLink,
+          h({ tag: 'span', class: 'quantity' }, ` x${quantity}`),
+        )
+        setNodesTooltip(entryLink, entry.id)
+        return li
+      }
+      ))
+    )
+  }
+  replace(questContent, quest.pageElem || '???')
+  replace(questTitle, title || '???')
+}
+
+
+questsElem.oninput = updateActiveQuest
+
+updateActiveQuest()
+
+let selectedEntry
+const setEssence = (key, character) => {
+}
+const selectEntry = (dbId = location.hash.slice(1)) => {
+  const entry = db[dbId]
+  if (!entry) return // todo: 404 ?
+  selectedEntry = entry
+
+  if (entry.type === 'character') {
+    const jasonOnly = entry.id === 'character_1' ? '' : 'none'
+    $('#inventory').style.display = jasonOnly
+    $('#quests').style.display = jasonOnly
+    replace($('#character_name'), entry.name)
+    replace($('#character_race'), entry.race)
+    console.log(entry)
+    replace($('#character_rank'), entry.rank?.elem.cloneNode(true) || '(rank unknown)')
+    for (const attribute of attributes) {
+      const value = entry[attribute]
+      const rank = value?.rank || ranks[0]
+      const essence = value?.essence || db[value.essence]
+      const attributeEl = $(`#${attribute} span`)
+      replace(attributeEl, [essence?.elem.cloneNode(true) || '(no essence)', ': ', rank.elem.cloneNode(true)])
+    }
+    setEssence('power', entry)
+    setEssence('speed', entry)
+    setEssence('spirit', entry)
+    setEssence('recovery', entry)
+    const abilities = entry.abilities || []
+    const slotsPerBar = 12
+    const bars = Array(Math.max(Math.ceil(abilities.length / slotsPerBar), 1)).keys()
+    const slots = [...Array(slotsPerBar).keys()]
+    const abilitiesElem = $('#abilities')
+    const abilityBarElems = $$('#abilities .ability-bar')
+    clear(abilitiesElem)
+    for (const barEl of abilityBarElems) {
+      barEl.style.display = 'none'
+    }
+    for (const barId of bars) {
+      let barEl = $(`#bar-${barId}`)
+      barEl || abilitiesElem.append(barEl = h({ class: 'ability-bar', id: `bar-${barId}` }))
+      const min = barId * slotsPerBar
+      const max = min + slotsPerBar
+      const selected = abilities.filter((ability, i) => i >= min && i < max)
+      barEl.append(...slots.map(slot => {
+        const ability = selected[slot]
+        const slotElem = h({ class: 'slot' })
+        ability && fillSlot(slotElem, ability)
+        return slotElem
+      }))
+      barEl.style.display = 'flex'
+    }
+  }
+  updateTooltipMap()
+}
+
+const initialParams = new URLSearchParams(location.search)
+let CHAPTER = Number(initialParams.get('chapter'))
+let CHARACTER = `character_${initialParams.get('character')}`
+let TARGET = location.hash.slice(1)
+
+const updateNavigation = (replace = false) => {
+  history[replace ? 'replaceState' : 'pushState']({}, null, `?${new URLSearchParams({
+    character: CHARACTER.split('_')[1],
+    chapter: CHAPTER,
+  })}#${TARGET}`)
+}
+
+const setCharacter = (dbId, replace) => {
+  if (!db[dbId] || dbId === CHARACTER) return
+  CHARACTER = dbId
+  updateNavigation(replace)
+}
+
+const setTarget = (dbId, replace) => {
+  if (!db[dbId] || dbId === TARGET) return
+  TARGET = dbId
+  updateNavigation(replace)
+}
+
+const setChapter = (chapterNumber, replace) => {
+  if (!(chapterNumber > 0) || CHAPTER === chapterNumber) return
+  CHAPTER = chapterNumber
+  updateNavigation(replace)
+}
+
+CHAPTER > 0 || setChapter(1)
+db[CHARACTER] || setCharacter('character_1', true)
+db[TARGET] || (location.hash.length > 1 && (location.hash = ''))
+
+if (!selectedEntry) {
+  location.hash = `#character_1`
+  selectEntry()
+}
+
+// TODO:
+// improve quest log style
+// essences
+// character switch
+// fix tooltip after switch character
+// generate progression text
+// handle close inventory & quests
+// show notification on inventory & quests icon
+// add currencies to inventory
+// contrain windows to viewport
+// think about mobile friendly view
+</script>
+</body>
